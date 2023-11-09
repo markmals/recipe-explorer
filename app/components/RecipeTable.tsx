@@ -1,6 +1,12 @@
 import { Icon } from "solid-heroicons"
 import { chevronDown, chevronUp } from "solid-heroicons/solid"
-import { ColumnDef, flexRender } from "@tanstack/solid-table"
+import {
+    ColumnDef,
+    createSolidTable as createTable,
+    flexRender,
+    getCoreRowModel,
+    getSortedRowModel,
+} from "@tanstack/solid-table"
 import { cx } from "cva"
 import { For, Show } from "solid-js"
 import { useReciepsController } from "~/lib/recipes/controller"
@@ -57,13 +63,34 @@ export const columns: ColumnDef<MelaRecipe>[] = [
 
 export function RecipeTable() {
     let controller = useReciepsController()
+    let table = createTable({
+        get data() {
+            return controller.displayedRecipes
+        },
+        columns,
+        state: {
+            get sorting() {
+                return controller.sorting
+            },
+        },
+        onSortingChange(updater) {
+            if (updater instanceof Function) {
+                controller.sorting = updater(controller.sorting)
+            } else {
+                controller.sorting = updater
+            }
+        },
+        enableMultiSort: true,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+    })
 
     return (
         <div class="inline-block min-w-full align-middle">
             <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
                 <table class="min-w-full divide-y divide-gray-300">
                     <thead class="bg-gray-50">
-                        <For each={controller.table.getHeaderGroups()}>
+                        <For each={table.getHeaderGroups()}>
                             {headerGroup => (
                                 <tr>
                                     <For each={headerGroup.headers}>
@@ -116,7 +143,7 @@ export function RecipeTable() {
                         </For>
                     </thead>
                     <tbody class="divide-y divide-gray-200 bg-white">
-                        <For each={controller.table.getRowModel().rows.slice(0, 10)}>
+                        <For each={table.getRowModel().rows.slice(0, 10)}>
                             {row => (
                                 <tr>
                                     <For each={row.getVisibleCells()}>

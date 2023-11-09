@@ -5,13 +5,7 @@ import { IndexedDBStorageEngine } from "../storage-engine"
 import { Recipe, RecipeFolder } from "./recipe"
 import { RecipeDecoder } from "./recipe-decoder"
 import invariant from "tiny-invariant"
-import {
-    createSolidTable,
-    getCoreRowModel,
-    getSortedRowModel,
-    SortingState,
-} from "@tanstack/solid-table"
-import { columns } from "~/components/RecipeTable"
+import { SortingState } from "@tanstack/solid-table"
 
 export class RecipesController {
     recipes = createCollection<Recipe>({
@@ -20,31 +14,6 @@ export class RecipesController {
             storeName: "recipes",
         }),
     })
-
-    table = (() => {
-        const self = this
-        return createSolidTable({
-            get data() {
-                return self.displayedRecipes
-            },
-            columns,
-            state: {
-                get sorting() {
-                    return self.sorting
-                },
-            },
-            onSortingChange(updater) {
-                if (updater instanceof Function) {
-                    self.sorting = updater(self.sorting)
-                } else {
-                    self.sorting = updater
-                }
-            },
-            enableMultiSort: true,
-            getCoreRowModel: getCoreRowModel(),
-            getSortedRowModel: getSortedRowModel(),
-        })
-    })()
 
     @signal() accessor selectedFolder = RecipeFolder.allRecipes.id
     @signal() accessor query = ""
