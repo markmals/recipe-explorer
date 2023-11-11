@@ -21,13 +21,12 @@
         "unzipit": "^1.4.3"
     },
     "devDependencies": {
-        "@rollup/plugin-typescript": "^11.1.5",
+        "@babel/plugin-proposal-decorators": "^7.23.3",
         "autoprefixer": "^10.4.16",
         "postcss": "^8.4.31",
         "prettier": "^3.0.3",
         "prettier-plugin-tailwindcss": "^0.5.6",
         "tailwindcss": "^3.3.5",
-        "tslib": "^2.6.2",
         "typescript": "^5.2.2",
         "vite": "^4.5.0",
         "vite-plugin-solid": "^2.7.2",

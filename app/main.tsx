@@ -3,15 +3,15 @@ import { Router } from "@solidjs/router"
 import * as Root from "./root.tsx"
 
 import "./tailwind.css"
-
-// Initialize database before rendering
-// await RecipesController.shared.seedDB()
+import { RecipesControllerProvider } from "./lib/recipes/controller.tsx"
 
 render(
     () => (
         <Router>
             <ErrorBoundary fallback={error => <Root.ErrorBoundary error={error} />}>
-                <Root.App />
+                <RecipesControllerProvider>
+                    <Root.App />
+                </RecipesControllerProvider>
             </ErrorBoundary>
         </Router>
     ),

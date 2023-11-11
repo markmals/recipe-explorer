@@ -1,5 +1,6 @@
-import { createEffect, createResource, createSignal, untrack } from "solid-js"
+import { createEffect, createResource, untrack } from "solid-js"
 import { StorageEngine } from "./storage-engine"
+import { createStore, reconcile } from "solid-js/store"
 
 export interface ToString {
     toString(): string
@@ -36,7 +37,7 @@ interface Collection<Item> {
 }
 
 export function createCollection<Item>(options: CollectionOptions<Item>): Collection<Item> {
-    const [items, setItems] = createSignal<Item[]>([])
+    const [items, setItems] = createStore<Item[]>([])
 
     const {
         initialValue,
@@ -57,7 +58,7 @@ export function createCollection<Item>(options: CollectionOptions<Item>): Collec
     const [initialized] = createResource(init)
     createEffect(() => {
         const value = initialized()
-        if (value) setItems(value)
+        if (value) setItems(reconcile(value))
     })
 
     async function persist(item: Item | Item[]) {
@@ -86,13 +87,13 @@ export function createCollection<Item>(options: CollectionOptions<Item>): Collec
 
     return {
         get items() {
-            return items()
+            return items
         },
         get isEmpty() {
-            return items().length === 0
+            return items.length === 0
         },
         get count() {
-            return items().length
+            return items.length
         },
         async add(item) {
             let currentValuesMap = new Map<string, Item>()
@@ -108,7 +109,7 @@ export function createCollection<Item>(options: CollectionOptions<Item>): Collec
                 }
 
                 // Take the current items array and turn it into a Map.
-                for (let currentItem of untrack(items)) {
+                for (let currentItem of untrack(() => items)) {
                     currentValuesMap.set((currentItem[cacheId] as ToString).toString(), currentItem)
                 }
 
@@ -122,7 +123,7 @@ export function createCollection<Item>(options: CollectionOptions<Item>): Collec
             } else {
                 let identifier = (item[cacheId] as ToString).toString()
 
-                for (let currentItem of untrack(items)) {
+                for (let currentItem of untrack(() => items)) {
                     currentValuesMap.set((currentItem[cacheId] as ToString).toString(), currentItem)
                 }
 
@@ -132,17 +133,19 @@ export function createCollection<Item>(options: CollectionOptions<Item>): Collec
                 await persist(item)
             }
 
-            setItems(Array.from(currentValuesMap.values()))
+            setItems(reconcile(Array.from(currentValuesMap.values())))
         },
         async delete(item) {
             let values: Item[] = Array.isArray(item) ? item : [item]
             await deletePersisted(item)
-            setItems(items =>
-                items.filter(
-                    currentItem =>
-                        !values
-                            .map(i => String(i[cacheId]))
-                            .includes((currentItem[cacheId] as ToString).toString()),
+            setItems(
+                reconcile(
+                    untrack(() => items).filter(
+                        currentItem =>
+                            !values
+                                .map(i => String(i[cacheId]))
+                                .includes((currentItem[cacheId] as ToString).toString()),
+                    ),
                 ),
             )
         },

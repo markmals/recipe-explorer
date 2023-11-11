@@ -46,13 +46,8 @@ export class RecipesController {
         return array.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name)).filter(Boolean)
     }
 
-    @memo()
-    get allFolders() {
-        return [RecipeFolder.allRecipes].concat(this.folders)
-    }
-
     recipeCount(folder: RecipeFolder): number {
-        return folder === RecipeFolder.allRecipes
+        return folder.id === RecipeFolder.allRecipes.id
             ? this.recipes.count
             : this.recipes.items.filter(recipe => recipe.folders.map(f => f.id).includes(folder.id))
                   .length
